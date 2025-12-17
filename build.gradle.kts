@@ -1,7 +1,18 @@
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 plugins {
-    // no top-level plugins here; modules define what they need
+  id("com.diffplug.spotless") version "8.1.0"
+}
+
+spotless {
+  java {
+    googleJavaFormat("1.33.0")
+    target("**/src/main/java/**/*.java", "**/src/test/java/**/*.java")
+  }
+}
+
+repositories {
+    mavenCentral()
 }
 
 subprojects {

@@ -1,2 +1,2 @@
-rootProject.name = "cve-scanner"
+rootProject.name = "scopeon"
 include(":core", ":persistence-jpa", ":agent", ":server", ":ui-javafx", ":cli")
