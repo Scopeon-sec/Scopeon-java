@@ -1,18 +1,19 @@
 package io.github.scopeon.core.model;
 
-import java.time.Instant;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 class InstalledPackageTest {
 
-  private final Host host = new Host("host1", "test-host", "127.0.0.1", Instant.parse("2024-01-01T00:00:00Z"));
+  private final Host host =
+      new Host("host1", "test-host", "127.0.0.1", Instant.parse("2024-01-01T00:00:00Z"));
 
   // Purpose: Verify initial package creation sets fields, active flag, and initial version
   @Test
@@ -23,8 +24,16 @@ class InstalledPackageTest {
 
     // Act
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1", host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan,
+            previousScan);
 
     // Assert
     assertEquals("pkg1", pkg.getId());
@@ -43,16 +52,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.0",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan1,
+            previousScan);
 
     // Act
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -82,16 +91,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.5",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.5",
+            scan1,
+            previousScan);
 
     // Upgrade to 2.0
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -139,16 +148,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.0",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan1,
+            previousScan);
 
     // Act (Rescan - same version)
     pkg.addOrUpdateVersion("1.0", scan2, scan1);
@@ -172,16 +181,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.0",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan1,
+            previousScan);
 
     // Act
     pkg.remove(scan2);
@@ -205,16 +214,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.0",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan1,
+            previousScan);
 
     // Act
     pkg.remove(scan2);
@@ -238,16 +247,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.0",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan1,
+            previousScan);
 
     // Manually close v1.0
     pkg.getVersions().get(0).setRemovedAt(scan2);
@@ -263,17 +272,17 @@ class InstalledPackageTest {
               // methods
               // For now, we'll test this by creating a scenario where previous version isn't
               // removed
-                InstalledPackage pkg2 =
+              InstalledPackage pkg2 =
                   new InstalledPackage(
-                    "pkg2",
-                    host,
-                    "TestApp2",
-                    PackageEcosystem.APT,
-                    "Vendor",
-                    "origin",
-                    "1.0",
-                    scan1,
-                    previousScan);
+                      "pkg2",
+                      host,
+                      "TestApp2",
+                      PackageEcosystem.APT,
+                      "Vendor",
+                      "origin",
+                      "1.0",
+                      scan1,
+                      previousScan);
               // Manually add a version that overlaps (simulating a bug)
               var version = pkg2.getVersions().get(0);
               version.setRemovedAt(scan2);
@@ -292,16 +301,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.0",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan1,
+            previousScan);
 
     // Try to manually add another version without removing the first
     // This simulates a bug where addVersionEntry is called without proper cleanup
@@ -322,8 +331,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1", host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.0",
+            scan,
+            previousScan);
 
     var versions = pkg.getVersions();
 
@@ -349,16 +366,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-      new InstalledPackage(
-        "pkg1",
-        host,
-        "TestApp",
-        PackageEcosystem.APT,
-        "Vendor",
-        "origin",
-        "1.5",
-        scan1,
-        previousScan);
+        new InstalledPackage(
+            "pkg1",
+            host,
+            "TestApp",
+            PackageEcosystem.APT,
+            "Vendor",
+            "origin",
+            "1.5",
+            scan1,
+            previousScan);
 
     // Act
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
