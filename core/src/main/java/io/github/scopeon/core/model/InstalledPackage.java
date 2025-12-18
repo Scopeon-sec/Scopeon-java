@@ -17,6 +17,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NonNull;
@@ -26,6 +27,11 @@ import lombok.Setter;
 @Entity
 @Table(
     name = "installed_packages",
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uk_pkg_host_name_ecosystem",
+          columnNames = {"host_id", "name", "ecosystem"})
+    },
     indexes = {
       @Index(name = "idx_name_ecosystem", columnList = "name, ecosystem"),
     })
@@ -34,12 +40,17 @@ import lombok.Setter;
 public class InstalledPackage {
   @Id private String id;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "host_id")
+  private Host host;
+
   private String name;
+
   @Enumerated(EnumType.STRING)
   @Column(length = 50)
   private PackageEcosystem ecosystem;
-  private boolean active;
 
+  private boolean active;
   private String origin;
   private String vendor;
 
@@ -64,6 +75,7 @@ public class InstalledPackage {
 
   public InstalledPackage(
       @NonNull String id,
+      @NonNull Host host,
       @NonNull String name,
       PackageEcosystem ecosystem,
       String vendor,
@@ -72,6 +84,7 @@ public class InstalledPackage {
       @NonNull Instant scan,
       Instant previousScan) {
     this.id = id;
+    this.host = host;
     this.name = name;
     this.ecosystem = ecosystem;
     this.vendor = vendor;
@@ -108,7 +121,7 @@ public class InstalledPackage {
 
   /**
    * Marks the package as removed at the given scan time.
-   * 
+   *
    * @param scan the time at which the package was detected as removed
    */
   public void remove(Instant scan) {
@@ -164,11 +177,7 @@ public class InstalledPackage {
         throw new IllegalStateException(
             String.format(
                 "Cannot add version %s at %s: overlaps with version %s (installed %s - %s)",
-                newVersion,
-                newFirstDetected,
-                existing.getVersion(),
-                existingStart,
-                existingEnd));
+                newVersion, newFirstDetected, existing.getVersion(), existingStart, existingEnd));
       }
     }
   }
@@ -177,9 +186,7 @@ public class InstalledPackage {
     return versions.stream().filter(v -> v.getRemovedAt() == null).findFirst().orElse(null);
   }
 
-  /**
-   * A record of a specific version of a package and its detection timeline.
-   */
+  /** A record of a specific version of a package and its detection timeline. */
   @Entity
   @Table(
       name = "installed_package_versions",

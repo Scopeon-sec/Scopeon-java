@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 class InstalledPackageTest {
 
+  private final Host host = new Host("host1", "test-host", "127.0.0.1", Instant.parse("2024-01-01T00:00:00Z"));
+
   // Purpose: Verify initial package creation sets fields, active flag, and initial version
   @Test
   void testCreatePackage() {
@@ -21,8 +23,8 @@ class InstalledPackageTest {
 
     // Act
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
+      new InstalledPackage(
+        "pkg1", host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
 
     // Assert
     assertEquals("pkg1", pkg.getId());
@@ -41,8 +43,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.0",
+        scan1,
+        previousScan);
 
     // Act
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -72,8 +82,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.5", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.5",
+        scan1,
+        previousScan);
 
     // Upgrade to 2.0
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -87,8 +105,7 @@ class InstalledPackageTest {
 
     // Assert
     // Check we have two separate v1.5 entries with different time periods
-    var v15Entries =
-        pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.5")).toList();
+    var v15Entries = pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.5")).toList();
     assertEquals(2, v15Entries.size());
 
     // First v1.5 should be removed at scan2
@@ -122,8 +139,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.0",
+        scan1,
+        previousScan);
 
     // Act (Rescan - same version)
     pkg.addOrUpdateVersion("1.0", scan2, scan1);
@@ -147,8 +172,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.0",
+        scan1,
+        previousScan);
 
     // Act
     pkg.remove(scan2);
@@ -172,8 +205,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.0",
+        scan1,
+        previousScan);
 
     // Act
     pkg.remove(scan2);
@@ -197,8 +238,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.0",
+        scan1,
+        previousScan);
 
     // Manually close v1.0
     pkg.getVersions().get(0).setRemovedAt(scan2);
@@ -208,21 +257,23 @@ class InstalledPackageTest {
         assertThrows(
             IllegalStateException.class,
             () -> {
-              // This would require bypassing addOrUpdateVersion and calling addVersionEntry directly
+              // This would require bypassing addOrUpdateVersion and calling addVersionEntry
+              // directly
               // Since addVersionEntry is private, we need to use reflection or test via public
               // methods
               // For now, we'll test this by creating a scenario where previous version isn't
               // removed
-              InstalledPackage pkg2 =
+                InstalledPackage pkg2 =
                   new InstalledPackage(
-                      "pkg2",
-                      "TestApp2",
-                      PackageEcosystem.APT,
-                      "Vendor",
-                      "origin",
-                      "1.0",
-                      scan1,
-                      previousScan);
+                    "pkg2",
+                    host,
+                    "TestApp2",
+                    PackageEcosystem.APT,
+                    "Vendor",
+                    "origin",
+                    "1.0",
+                    scan1,
+                    previousScan);
               // Manually add a version that overlaps (simulating a bug)
               var version = pkg2.getVersions().get(0);
               version.setRemovedAt(scan2);
@@ -241,8 +292,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.0",
+        scan1,
+        previousScan);
 
     // Try to manually add another version without removing the first
     // This simulates a bug where addVersionEntry is called without proper cleanup
@@ -263,20 +322,20 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
+      new InstalledPackage(
+        "pkg1", host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
 
     var versions = pkg.getVersions();
 
     // Act + Assert
     // Attempt to modify should throw
     UnsupportedOperationException ex =
-      assertThrows(
-        UnsupportedOperationException.class,
-        () -> {
-          versions.add(
-            new InstalledPackage.InstalledPackageVersion(pkg, "3.0", Instant.now(), null));
-        });
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> {
+              versions.add(
+                  new InstalledPackage.InstalledPackageVersion(pkg, "3.0", Instant.now(), null));
+            });
     assertNotNull(ex);
   }
 
@@ -290,8 +349,16 @@ class InstalledPackageTest {
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
     InstalledPackage pkg =
-        new InstalledPackage(
-            "pkg1", "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.5", scan1, previousScan);
+      new InstalledPackage(
+        "pkg1",
+        host,
+        "TestApp",
+        PackageEcosystem.APT,
+        "Vendor",
+        "origin",
+        "1.5",
+        scan1,
+        previousScan);
 
     // Act
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -299,7 +366,8 @@ class InstalledPackageTest {
 
     // Assert
     // All version entries should have unique IDs
-    var ids = pkg.getVersions().stream().map(InstalledPackage.InstalledPackageVersion::getId).toList();
+    var ids =
+        pkg.getVersions().stream().map(InstalledPackage.InstalledPackageVersion::getId).toList();
     assertEquals(3, ids.size());
     assertEquals(3, ids.stream().distinct().count()); // All unique
 
