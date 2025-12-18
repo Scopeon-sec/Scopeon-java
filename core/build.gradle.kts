@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     api(libs.jakarta.persistence.api)
+    api(libs.jakarta.validation.api)
     implementation(libs.jackson.databind)
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
