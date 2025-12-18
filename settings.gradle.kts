@@ -1,2 +1,2 @@
 rootProject.name = "scopeon"
-include(":core", ":persistence-jpa", ":agent", ":server", ":ui-javafx", ":cli")
+include(":core", ":persistence-jpa", ":agent", ":server", ":ui-javafx")
