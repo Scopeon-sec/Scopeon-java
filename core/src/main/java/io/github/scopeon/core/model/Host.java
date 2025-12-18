@@ -12,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -26,8 +27,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Host {
-  @Id @NotNull private String id;
+  @Id @NotNull private UUID id;
 
+  @NotNull
   @Column(nullable = false)
   private String hostname;
 
@@ -47,8 +49,8 @@ public class Host {
 
   protected Host() {}
 
-  public Host(@NonNull String id, @NonNull String hostname, String ip, Instant createdAt) {
-    this.id = id;
+  public Host(@NonNull String hostname, String ip, Instant createdAt) {
+    this.id = UUID.randomUUID();
     this.hostname = hostname;
     this.ip = ip;
     this.createdAt = createdAt != null ? createdAt : Instant.now();
@@ -62,11 +64,5 @@ public class Host {
     if (pkg == null) return;
     pkg.setHost(this);
     this.installedPackages.add(pkg);
-  }
-
-  public void removeInstalledPackage(InstalledPackage pkg) {
-    if (pkg == null) return;
-    this.installedPackages.remove(pkg);
-    pkg.setHost(null);
   }
 }

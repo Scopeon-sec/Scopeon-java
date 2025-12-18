@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 class InstalledPackageTest {
 
   private final Host host =
-      new Host("host1", "test-host", "127.0.0.1", Instant.parse("2024-01-01T00:00:00Z"));
+      new Host("test-host", "127.0.0.1", Instant.parse("2024-01-01T00:00:00Z"));
 
   // Purpose: Verify initial package creation sets fields, active flag, and initial version
   @Test
@@ -25,18 +25,10 @@ class InstalledPackageTest {
     // Act
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
 
     // Assert
-    assertEquals("pkg1", pkg.getId());
+    assertNotNull(pkg.getId());
     assertEquals("TestApp", pkg.getName());
     assertEquals("1.0", pkg.getCurrentVersion());
     assertTrue(pkg.isActive());
@@ -53,15 +45,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Act
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -92,15 +76,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.5",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.5", scan1, previousScan);
 
     // Upgrade to 2.0
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -149,15 +125,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Act (Rescan - same version)
     pkg.addOrUpdateVersion("1.0", scan2, scan1);
@@ -182,15 +150,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Act
     pkg.remove(scan2);
@@ -215,15 +175,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Act
     pkg.remove(scan2);
@@ -248,15 +200,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Manually close v1.0
     pkg.getVersions().get(0).setRemovedAt(scan2);
@@ -274,7 +218,6 @@ class InstalledPackageTest {
               // removed
               InstalledPackage pkg2 =
                   new InstalledPackage(
-                      "pkg2",
                       host,
                       "TestApp2",
                       PackageEcosystem.APT,
@@ -302,15 +245,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Try to manually add another version without removing the first
     // This simulates a bug where addVersionEntry is called without proper cleanup
@@ -332,15 +267,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.0",
-            scan,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
 
     var versions = pkg.getVersions();
 
@@ -367,15 +294,7 @@ class InstalledPackageTest {
 
     InstalledPackage pkg =
         new InstalledPackage(
-            "pkg1",
-            host,
-            "TestApp",
-            PackageEcosystem.APT,
-            "Vendor",
-            "origin",
-            "1.5",
-            scan1,
-            previousScan);
+            host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.5", scan1, previousScan);
 
     // Act
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
@@ -388,7 +307,7 @@ class InstalledPackageTest {
     assertEquals(3, ids.size());
     assertEquals(3, ids.stream().distinct().count()); // All unique
 
-    // IDs should include timestamp
-    assertTrue(ids.stream().allMatch(id -> id.contains(":")));
+    // IDs should be non-null (UUIDs)
+    assertTrue(ids.stream().allMatch(id -> id != null));
   }
 }

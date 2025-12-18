@@ -1,9 +1,5 @@
 package io.github.scopeon.core.model;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,6 +15,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -38,7 +38,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InstalledPackage {
-  @Id private String id;
+  @Id @NotNull private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "host_id")
@@ -73,8 +73,9 @@ public class InstalledPackage {
     return java.util.Collections.unmodifiableList(versions);
   }
 
+  protected InstalledPackage() {}
+
   public InstalledPackage(
-      @NonNull String id,
       @NonNull Host host,
       @NonNull String name,
       PackageEcosystem ecosystem,
@@ -83,7 +84,7 @@ public class InstalledPackage {
       @NonNull String version,
       @NonNull Instant scan,
       Instant previousScan) {
-    this.id = id;
+    this.id = UUID.randomUUID();
     this.host = host;
     this.name = name;
     this.ecosystem = ecosystem;
@@ -228,7 +229,7 @@ public class InstalledPackage {
         @NonNull String version,
         Instant detected,
         Instant firstNotDetected) {
-      this.id = pkg.getId() + ":" + version + ":" + detected.toEpochMilli();
+      this.id = pkg.getId().toString() + ":" + version + ":" + detected.toEpochMilli();
       this.pkg = pkg;
       this.version = version;
       this.firstDetected = detected;
