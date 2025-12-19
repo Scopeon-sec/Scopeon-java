@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
@@ -18,9 +19,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 /** Represents a host machine that can have installed packages. */
 @Entity
@@ -32,7 +35,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Host {
-  @Id @NotNull private UUID id;
+  @Id
+  @GeneratedValue
+  @UuidGenerator
+  @Column(nullable = false, updatable = false)
+  @Setter(AccessLevel.NONE)
+  private UUID id;
 
   @NotNull
   @Column(nullable = false, unique = true)
@@ -65,8 +73,8 @@ public class Host {
   @Column(name = "last_scan")
   private Instant lastScan;
 
-  @Column(name = "created_at")
-  private final Instant createdAt = Instant.now();
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private Instant createdAt;
 
   @Column(name = "updated_at")
   private Instant updatedAt;
@@ -90,24 +98,19 @@ public class Host {
       @NonNull String ip,
       String os,
       OsFamily osFamily,
-      String architecture) {
-    this.id = UUID.randomUUID();
+      String architecture,
+      HostStatus status,
+      NetworkExposure networkExposure) {
     this.hostname = hostname;
     this.ipAddress = ip;
     this.operatingSystem = os;
-    this.osFamily = osFamily;
     this.architecture = architecture;
-    this.status = HostStatus.UNKNOWN;
-    this.networkExposure = NetworkExposure.UNKNOWN;
+    this.osFamily = osFamily != null ? osFamily : OsFamily.UNKNOWN;
+    this.status = status != null ? status : HostStatus.UNKNOWN;
+    this.networkExposure = networkExposure != null ? networkExposure : NetworkExposure.UNKNOWN;
   }
 
   public List<InstalledPackage> getInstalledPackages() {
     return java.util.Collections.unmodifiableList(installedPackages);
-  }
-
-  public void addInstalledPackage(InstalledPackage pkg) {
-    if (pkg == null) return;
-    pkg.setHost(this);
-    this.installedPackages.add(pkg);
   }
 }

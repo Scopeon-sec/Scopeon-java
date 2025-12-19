@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.scopeon.core.model.enums.OsFamily;
 import io.github.scopeon.core.model.enums.PackageEcosystem;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,7 @@ import org.junit.jupiter.api.Test;
 class InstalledPackageTest {
 
   private final Host host =
-      new Host("test-host", "127.0.0.1", "Test OS", OsFamily.UNKNOWN, "x86_64");
+      new Host("test-host", "127.0.0.1", "Test OS", null, "x86_64", null, null);
 
   // Purpose: Verify initial package creation sets fields, active flag, and initial version
   @Test

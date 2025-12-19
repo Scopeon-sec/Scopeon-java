@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
@@ -20,9 +21,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 /** Represents a package (software) detected on a system. */
 @Entity
@@ -39,7 +42,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InstalledPackage {
-  @Id @NotNull private UUID id;
+  @Id
+  @GeneratedValue
+  @UuidGenerator
+  @Column(nullable = false, updatable = false)
+  @Setter(AccessLevel.NONE)
+  private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "host_id")
@@ -85,7 +93,7 @@ public class InstalledPackage {
       @NonNull String version,
       @NonNull Instant scan,
       Instant previousScan) {
-    this.id = UUID.randomUUID();
+    // Don't set ID manually - let JPA @GeneratedValue handle it
     this.host = host;
     this.name = name;
     this.ecosystem = ecosystem;
@@ -199,7 +207,12 @@ public class InstalledPackage {
   @Getter
   @Setter
   public static class InstalledPackageVersion {
-    @Id @NotNull private String id; // deterministic: pkg.id + ":" + version (set externally)
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    @Column(nullable = false, updatable = false)
+    @Setter(AccessLevel.NONE)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pkg_id", nullable = false)
@@ -225,17 +238,32 @@ public class InstalledPackage {
     @Column(name = "removed_at")
     private Instant removedAt;
 
+    protected InstalledPackageVersion() {}
+
     public InstalledPackageVersion(
         @NonNull InstalledPackage pkg,
         @NonNull String version,
         Instant detected,
         Instant firstNotDetected) {
-      this.id = pkg.getId().toString() + ":" + version + ":" + detected.toEpochMilli();
+      // Don't set ID manually - let JPA @GeneratedValue handle it
       this.pkg = pkg;
       this.version = version;
       this.firstDetected = detected;
       this.lastDetected = detected;
       this.firstNotDetected = firstNotDetected;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof InstalledPackageVersion)) return false;
+      InstalledPackageVersion that = (InstalledPackageVersion) o;
+      return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+      return getClass().hashCode();
     }
   }
 }
