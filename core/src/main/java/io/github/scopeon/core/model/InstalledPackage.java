@@ -1,5 +1,6 @@
 package io.github.scopeon.core.model;
 
+import io.github.scopeon.core.model.enums.PackageEcosystem;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
