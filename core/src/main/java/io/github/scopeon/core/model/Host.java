@@ -1,8 +1,13 @@
 package io.github.scopeon.core.model;
 
+import io.github.scopeon.core.model.enums.HostStatus;
+import io.github.scopeon.core.model.enums.NetworkExposure;
+import io.github.scopeon.core.model.enums.OsFamily;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
@@ -30,30 +35,70 @@ public class Host {
   @Id @NotNull private UUID id;
 
   @NotNull
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String hostname;
 
-  private String ip;
+  @NotNull
+  @Column(name = "ip_address", nullable = false)
+  private String ipAddress;
+
+  @Column(name = "operating_system")
+  private String operatingSystem;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "os_family")
+  private OsFamily osFamily;
+
+  private String architecture;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  private HostStatus status;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "network_exposure")
+  private NetworkExposure networkExposure;
+
+  @Column(name = "last_heartbeat")
+  private Instant lastHeartbeat;
+
+  @Column(name = "last_scan")
+  private Instant lastScan;
 
   @Column(name = "created_at")
-  private Instant createdAt;
+  private final Instant createdAt = Instant.now();
+
+  @Column(name = "updated_at")
+  private Instant updatedAt;
+
+  @Column(columnDefinition = "jsonb")
+  private String technicalDetails;
 
   // Installed packages on this host
   @OneToMany(
       mappedBy = "host",
       cascade = CascadeType.ALL,
       orphanRemoval = true,
-      fetch = FetchType.EAGER)
+      fetch = FetchType.LAZY)
   @Getter(lombok.AccessLevel.NONE)
   private final List<InstalledPackage> installedPackages = new ArrayList<>();
 
   protected Host() {}
 
-  public Host(@NonNull String hostname, String ip, Instant createdAt) {
+  public Host(
+      @NonNull String hostname,
+      @NonNull String ip,
+      String os,
+      OsFamily osFamily,
+      String architecture) {
     this.id = UUID.randomUUID();
     this.hostname = hostname;
-    this.ip = ip;
-    this.createdAt = createdAt != null ? createdAt : Instant.now();
+    this.ipAddress = ip;
+    this.operatingSystem = os;
+    this.osFamily = osFamily;
+    this.architecture = architecture;
+    this.status = HostStatus.UNKNOWN;
+    this.networkExposure = NetworkExposure.UNKNOWN;
   }
 
   public List<InstalledPackage> getInstalledPackages() {
