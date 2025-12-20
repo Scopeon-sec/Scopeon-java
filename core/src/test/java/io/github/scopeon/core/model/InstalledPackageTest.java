@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 
 class InstalledPackageTest {
 
-  private final Host host =
-      new Host("test-host", "127.0.0.1", "Test OS", null, "x86_64", null, null);
+  private final Host host = new Host("test-host", "Test OS", null, "x86_64");
 
   // Purpose: Verify initial package creation sets fields, active flag, and initial version
   @Test
