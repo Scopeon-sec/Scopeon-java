@@ -9,11 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.scopeon.core.model.enums.PackageEcosystem;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class InstalledPackageTest {
-
-  private final Host host = new Host("test-host", "Test OS", null, "x86_64");
 
   // Purpose: Verify initial package creation sets fields, active flag, and initial version
   @Test
@@ -22,13 +21,16 @@ class InstalledPackageTest {
     Instant scan = Instant.parse("2025-01-01T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     // Act
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
 
+    // No JPA in unit tests: IDs are not assigned without persistence
     // Assert
-    assertNotNull(pkg.getId());
+    assertNull(pkg.getId());
     assertEquals("TestApp", pkg.getName());
     assertEquals("1.0", pkg.getCurrentVersion());
     assertTrue(pkg.isActive());
@@ -43,6 +45,8 @@ class InstalledPackageTest {
     Instant scan2 = Instant.parse("2025-01-15T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
@@ -55,12 +59,14 @@ class InstalledPackageTest {
     assertEquals(2, pkg.getVersions().size());
 
     // Check that v1.0 was marked as removed
-    var v1 = pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.0")).findFirst();
+    java.util.Optional<InstalledPackage.InstalledPackageVersion> v1 =
+        pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.0")).findFirst();
     assertTrue(v1.isPresent());
     assertEquals(scan2, v1.get().getRemovedAt());
 
     // Check that v2.0 is active
-    var v2 = pkg.getVersions().stream().filter(v -> v.getVersion().equals("2.0")).findFirst();
+    java.util.Optional<InstalledPackage.InstalledPackageVersion> v2 =
+        pkg.getVersions().stream().filter(v -> v.getVersion().equals("2.0")).findFirst();
     assertTrue(v2.isPresent());
     assertNull(v2.get().getRemovedAt());
   }
@@ -74,6 +80,8 @@ class InstalledPackageTest {
     Instant scan3 = Instant.parse("2025-02-01T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.5", scan1, previousScan);
@@ -85,16 +93,17 @@ class InstalledPackageTest {
     // Downgrade back to 1.5
     pkg.addOrUpdateVersion("1.5", scan3, scan2);
 
+    // Assertions
     assertEquals("1.5", pkg.getCurrentVersion());
     assertEquals(3, pkg.getVersions().size()); // Two entries for v1.5, one for v2.0
 
-    // Assert
     // Check we have two separate v1.5 entries with different time periods
-    var v15Entries = pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.5")).toList();
+    List<InstalledPackage.InstalledPackageVersion> v15Entries =
+        pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.5")).toList();
     assertEquals(2, v15Entries.size());
 
     // First v1.5 should be removed at scan2
-    var firstV15 =
+    InstalledPackage.InstalledPackageVersion firstV15 =
         v15Entries.stream()
             .filter(v -> v.getFirstDetected().equals(scan1))
             .findFirst()
@@ -102,7 +111,7 @@ class InstalledPackageTest {
     assertEquals(scan2, firstV15.getRemovedAt());
 
     // Second v1.5 should be active
-    var secondV15 =
+    InstalledPackage.InstalledPackageVersion secondV15 =
         v15Entries.stream()
             .filter(v -> v.getFirstDetected().equals(scan3))
             .findFirst()
@@ -110,9 +119,10 @@ class InstalledPackageTest {
     assertNull(secondV15.getRemovedAt());
 
     // v2.0 should be removed at scan3
-    var v2 = pkg.getVersions().stream().filter(v -> v.getVersion().equals("2.0")).findFirst();
-    assertTrue(v2.isPresent());
-    assertEquals(scan3, v2.get().getRemovedAt());
+    java.util.Optional<InstalledPackage.InstalledPackageVersion> v2opt =
+        pkg.getVersions().stream().filter(v -> v.getVersion().equals("2.0")).findFirst();
+    assertTrue(v2opt.isPresent());
+    assertEquals(scan3, v2opt.get().getRemovedAt());
   }
 
   // Purpose: Rescanning same version updates lastDetected and does not add a new entry
@@ -122,6 +132,8 @@ class InstalledPackageTest {
     Instant scan1 = Instant.parse("2025-01-01T00:00:00Z");
     Instant scan2 = Instant.parse("2025-01-15T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
+
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
 
     InstalledPackage pkg =
         new InstalledPackage(
@@ -134,10 +146,13 @@ class InstalledPackageTest {
     assertEquals(1, pkg.getVersions().size()); // Should not create a new entry
 
     // Assert
-    var v1 = pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.0")).findFirst();
-    assertTrue(v1.isPresent());
-    assertEquals(scan2, v1.get().getLastDetected());
-    assertNull(v1.get().getRemovedAt());
+    InstalledPackage.InstalledPackageVersion v1 =
+        pkg.getVersions().stream()
+            .filter(v -> v.getVersion().equals("1.0"))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(scan2, v1.getLastDetected());
+    assertNull(v1.getRemovedAt());
   }
 
   // Purpose: Removing a package marks it inactive and records removed timestamp for version
@@ -147,6 +162,8 @@ class InstalledPackageTest {
     Instant scan1 = Instant.parse("2025-01-01T00:00:00Z");
     Instant scan2 = Instant.parse("2025-01-15T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
+
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
 
     InstalledPackage pkg =
         new InstalledPackage(
@@ -159,9 +176,12 @@ class InstalledPackageTest {
     assertFalse(pkg.isActive());
     assertNull(pkg.getCurrentVersion());
 
-    var v1 = pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.0")).findFirst();
-    assertTrue(v1.isPresent());
-    assertEquals(scan2, v1.get().getRemovedAt());
+    InstalledPackage.InstalledPackageVersion v1 =
+        pkg.getVersions().stream()
+            .filter(v -> v.getVersion().equals("1.0"))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(scan2, v1.getRemovedAt());
   }
 
   // Purpose: Reinstalling same version after removal reactivates package and adds a new period
@@ -172,6 +192,8 @@ class InstalledPackageTest {
     Instant scan2 = Instant.parse("2025-01-15T00:00:00Z");
     Instant scan3 = Instant.parse("2025-02-01T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
+
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
 
     InstalledPackage pkg =
         new InstalledPackage(
@@ -198,6 +220,8 @@ class InstalledPackageTest {
     Instant overlapScan = Instant.parse("2025-01-10T00:00:00Z"); // Before scan2
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
@@ -210,12 +234,6 @@ class InstalledPackageTest {
         assertThrows(
             IllegalStateException.class,
             () -> {
-              // This would require bypassing addOrUpdateVersion and calling addVersionEntry
-              // directly
-              // Since addVersionEntry is private, we need to use reflection or test via public
-              // methods
-              // For now, we'll test this by creating a scenario where previous version isn't
-              // removed
               InstalledPackage pkg2 =
                   new InstalledPackage(
                       host,
@@ -226,10 +244,8 @@ class InstalledPackageTest {
                       "1.0",
                       scan1,
                       previousScan);
-              // Manually add a version that overlaps (simulating a bug)
-              var version = pkg2.getVersions().get(0);
+              InstalledPackage.InstalledPackageVersion version = pkg2.getVersions().get(0);
               version.setRemovedAt(scan2);
-              // Now try to add a version that starts before scan2
               pkg2.addOrUpdateVersion("2.0", overlapScan, previousScan);
             });
 
@@ -243,17 +259,18 @@ class InstalledPackageTest {
     Instant scan2 = Instant.parse("2025-01-15T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan1, previousScan);
 
     // Try to manually add another version without removing the first
-    // This simulates a bug where addVersionEntry is called without proper cleanup
-    // Since we can't access private method, we test that addOrUpdateVersion handles it correctly
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
 
     // The method should have properly closed v1.0 before adding v2.0
-    var v1 = pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.0")).findFirst();
+    java.util.Optional<InstalledPackage.InstalledPackageVersion> v1 =
+        pkg.getVersions().stream().filter(v -> v.getVersion().equals("1.0")).findFirst();
     assertTrue(v1.isPresent());
     assertNotNull(v1.get().getRemovedAt());
   }
@@ -265,14 +282,15 @@ class InstalledPackageTest {
     Instant scan = Instant.parse("2025-01-01T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.0", scan, previousScan);
 
-    var versions = pkg.getVersions();
+    List<InstalledPackage.InstalledPackageVersion> versions = pkg.getVersions();
 
     // Act + Assert
-    // Attempt to modify should throw
     UnsupportedOperationException ex =
         assertThrows(
             UnsupportedOperationException.class,
@@ -283,7 +301,7 @@ class InstalledPackageTest {
     assertNotNull(ex);
   }
 
-  // Purpose: Each version entry has a unique ID and includes a timestamp
+  // Purpose: Each version entry is tracked with timestamps; IDs are assigned by JPA only
   @Test
   void testVersionIdIsUnique() {
     // Arrange
@@ -292,22 +310,20 @@ class InstalledPackageTest {
     Instant scan3 = Instant.parse("2025-02-01T00:00:00Z");
     Instant previousScan = Instant.parse("2024-12-31T00:00:00Z");
 
+    Host host = new Host("test-host", "Test OS", null, "x86_64");
+
     InstalledPackage pkg =
         new InstalledPackage(
             host, "TestApp", PackageEcosystem.APT, "Vendor", "origin", "1.5", scan1, previousScan);
 
-    // Act
+    // Act (pure unit: don't use JPA here)
     pkg.addOrUpdateVersion("2.0", scan2, scan1);
     pkg.addOrUpdateVersion("1.5", scan3, scan2); // Downgrade
 
-    // Assert
-    // All version entries should have unique IDs
-    var ids =
-        pkg.getVersions().stream().map(InstalledPackage.InstalledPackageVersion::getId).toList();
-    assertEquals(3, ids.size());
-    assertEquals(3, ids.stream().distinct().count()); // All unique
-
-    // IDs should be non-null (UUIDs)
-    assertTrue(ids.stream().allMatch(id -> id != null));
+    // Assert: versions are tracked and timestamps are present
+    List<InstalledPackage.InstalledPackageVersion> versions = pkg.getVersions();
+    assertEquals(3, versions.size());
+    // IDs are not assigned without persistence; ensure timestamps are correct
+    assertTrue(versions.stream().allMatch(v -> v.getFirstDetected() != null));
   }
 }

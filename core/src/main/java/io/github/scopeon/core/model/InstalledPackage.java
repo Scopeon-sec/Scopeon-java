@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
@@ -93,7 +94,8 @@ public class InstalledPackage {
       @NonNull String version,
       @NonNull Instant scan,
       Instant previousScan) {
-    // Don't set ID manually - let JPA @GeneratedValue handle it
+    // Don't set ID manually - JPA will assign one on persist. Use @PrePersist to
+    // ensure id is present when persisting.
     this.host = host;
     this.name = name;
     this.ecosystem = ecosystem;
@@ -102,6 +104,13 @@ public class InstalledPackage {
     this.active = true;
 
     addVersionEntry(version, scan, previousScan);
+  }
+
+  @PrePersist
+  private void ensureId() {
+    if (this.id == null) {
+      this.id = UUID.randomUUID();
+    }
   }
 
   public void addOrUpdateVersion(String version, Instant scan, Instant previousScan) {
@@ -245,12 +254,19 @@ public class InstalledPackage {
         @NonNull String version,
         Instant detected,
         Instant firstNotDetected) {
-      // Don't set ID manually - let JPA @GeneratedValue handle it
+      // Don't set ID manually - JPA will assign one on persist.
       this.pkg = pkg;
       this.version = version;
       this.firstDetected = detected;
       this.lastDetected = detected;
       this.firstNotDetected = firstNotDetected;
+    }
+
+    @PrePersist
+    private void ensureId() {
+      if (this.id == null) {
+        this.id = UUID.randomUUID();
+      }
     }
 
     @Override

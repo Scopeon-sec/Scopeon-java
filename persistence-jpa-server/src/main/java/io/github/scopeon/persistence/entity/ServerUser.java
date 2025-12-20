@@ -10,6 +10,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -81,8 +82,9 @@ public class ServerUser {
   @Column(name = "last_login")
   private Instant lastLogin;
 
-  @Column(name = "failed_login_attempts")
-  private Integer failedLoginAttempts = 0;
+  @Min(0)
+  @Column(name = "failed_login_attempts", nullable = false)
+  private short failedLoginAttempts = 0;
 
   @Column(name = "account_locked_until")
   private Instant accountLockedUntil;
@@ -153,8 +155,7 @@ public class ServerUser {
 
   /** Increment failed login attempts. */
   public void recordFailedLogin() {
-    this.failedLoginAttempts =
-        (this.failedLoginAttempts == null ? 0 : this.failedLoginAttempts) + 1;
+    this.failedLoginAttempts++;
     this.setUpdatedAt(Instant.now());
   }
 

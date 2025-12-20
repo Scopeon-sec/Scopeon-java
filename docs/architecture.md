@@ -57,13 +57,16 @@ Platform-specific package detection (dpkg, rpm, brew, npm, etc.) implemented as 
 - **Versionable**: Independent versioning and updates
 - **Output**: Standard JSON schema to stdout
 
-### 4. Shared Persistence (`persistence-jpa`)
+### 4. Split Persistence Layer
 
-JPA entities and repositories shared between:
+**`persistence-jpa`**: Shared base entities (Host, InstalledPackage)
 - **desktop-agent**: H2 embedded file database
-- **server**: PostgreSQL/MySQL (configurable)
+- **server**: PostgreSQL/MySQL (via `persistence-jpa-server`)
 
-Same code, different database configuration at deployment.
+**`persistence-jpa-server`**: Server-specific entities and extensions
+- Extends base entities with multi-tenancy, audit, and user management
+- Used only by server product
+- Adds ServerHost, ServerUser, UserSession entities
 
 ### 5. UI Only for Desktop Product
 
@@ -86,16 +89,32 @@ Same code, different database configuration at deployment.
 ---
 
 ### `persistence-jpa/` (Java Library)
-**Shared JPA persistence layer**
+**Shared base JPA persistence layer**
 
 **Responsibilities:**
-- JPA entity mappings for `core` domain model
-- Repository interfaces and implementations
+- JPA entity mappings for `core` domain model (Host, InstalledPackage)
+- Base repository interfaces and implementations
 - Database bootstrap helpers (H2/PostgreSQL configuration)
 
-**Used by**: `desktop-agent` (H2 embedded), `server` (PostgreSQL/MySQL)  
+**Used by**: `desktop-agent` (H2 embedded), `persistence-jpa-server` (base for server entities)  
 **Dependencies**: `core`, JPA/Hibernate  
-**Why separate**: Shares persistence code while allowing different database choices
+**Why separate**: Shares persistence code while keeping desktop free of server-specific entities
+
+---
+
+### `persistence-jpa-server/` (Java Library)
+**Server-specific JPA entities and extensions**
+
+**Responsibilities:**
+- Server-specific entities: `ServerHost`, `ServerUser`, `UserSession`
+- Multi-tenancy support (organizations, teams)
+- Audit trails (createdBy, updatedBy, deletedBy)
+- Soft delete functionality
+- User authentication and session management
+
+**Used by**: `server` (PostgreSQL/MySQL)  
+**Dependencies**: `core`, `persistence-jpa`, JPA/Hibernate  
+**Why separate**: Desktop product doesn't need user/auth/multi-tenancy concepts
 
 ---
 
@@ -243,6 +262,7 @@ Same code, different database configuration at deployment.
 |--------|--------|----------|
 | `core/` | ✅ In progress | High |
 | `persistence-jpa/` | ✅ In progress | High |
+| `persistence-jpa-server/` | ✅ Complete | High |
 | `desktop-agent/` | ⏳ Next (merge agent-core) | High |
 | `ui-javafx/` | ⏳ Planned | Medium |
 | `detectors/` | 📝 To be created (Rust) | High |
